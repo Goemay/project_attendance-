@@ -1,4 +1,4 @@
-# CNAIndo Attendance
+# Project Attendance
 
 Slim-based PHP app for recording check-in/checkout events with geofence validation, simple roles, and basic reports.
 
