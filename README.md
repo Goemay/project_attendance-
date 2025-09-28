@@ -1,44 +1,179 @@
-# MINI PROJECT — Dashboard Attendance (PHP skeleton)
+# CNAIndo Attendance
 
-This is a minimal PHP skeleton for the Attendance Dashboard demo. It is intended to be run under XAMPP (Apache + MySQL).
+Slim-based PHP app for recording check-in/checkout events with geofence validation, simple roles, and basic reports.
 
-Quick setup
+### Features
+- Check-in and check-out with optional GPS latitude/longitude and accuracy.
+- Admin and user roles with basic management pages.
+- Working hours, radius, and location settings.
+- Exportable attendance summaries.
 
-1. Copy this folder to your XAMPP `htdocs` (already in place).
-2. Import `migrations.sql` into MySQL (phpMyAdmin or mysql client). This will create `project_cnaindo` and the tables.
-3. Edit `config.php` if MySQL credentials differ.
-4. Start Apache + MySQL in XAMPP and visit: http://localhost/Project-cnaindo/
+### Stack
+- PHP 8.x, Slim (microframework).
+- Composer for dependencies.
+- MariaDB/MySQL for persistence.
+- Apache with mod_rewrite (XAMPP-friendly).
 
-Notes
-- Basic features: register/login, record attendance (with browser geolocation), admin list of users and recent attendance.
-- This is a minimal, demo-first implementation. For production: add CSRF protection, input sanitization, prepared statements (already used), HTTPS, password reset, roles UI, and tests.
+### Requirements
+- PHP 8.1+ with mbstring, pdo_mysql, openssl, curl.
+- Composer installed globally.
+- MariaDB/MySQL 10.4+.
+- Apache with AllowOverride enabled for .htaccess.
 
-Optional: Install Composer and use Slim framework scaffold
------------------------------------------------------
-If you'd like to migrate to a framework (Slim) and use Composer-managed libraries, follow these steps on Windows with XAMPP:
+### Project structure
+```
+Project-cnaindo/
+├─ app/                 # Application logic (controllers, routes if present)
+├─ public/              # Web root (front controller index.php, assets)
+├─ includes/            # Shared header/footer partials
+├─ vendor/              # Composer packages (generated)
+├─ config/              # App configuration, bootstrap, env reading
+├─ migrations/          # (Optional) DB migrations
+├─ *.php                # Some entry/helper scripts in root (legacy)
+├─ project_cnaindo.sql  # Database dump
+└─ README.md
+```
 
-1. Download and install Composer: https://getcomposer.org/Composer-Setup.exe
-2. Ensure Composer uses your XAMPP PHP (usually C:\\xamppp\\php\\php.exe) during installation.
-3. In PowerShell, from the project folder, run:
+### Quick start
 
-```powershell
-cd C:\\xamppp\\htdocs\\Project-cnaindo
+1) Clone or copy the folder into XAMPP htdocs:
+```
+C:\xampp\htdocs\Project-cnaindo
+```
+
+2) Install PHP dependencies:
+```
+cd C:\xampp\htdocs\Project-cnaindo
 composer install
 ```
 
-4. After install, you can run the optional Slim front controller at `public/index.php`. Configure Apache to use `public` as document root or test via built-in PHP server (for dev only):
+3) Configure environment:
 
-```powershell
-& 'C:\\xamppp\\php\\php.exe' -S localhost:8080 -t public
+Create: C:\xampp\htdocs\Project-cnaindo\.env
+```
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost/Project-cnaindo
+
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=project_cnaindo
+DB_USERNAME=root
+DB_PASSWORD=
+# Geofence defaults (can be overridden in settings table)
+ALLOWED_LAT=-6.34311300
+ALLOWED_LON=107.09773700
+RADIUS_METERS=100
+WORK_START=09:00:00
+WORK_END=17:00:00
 ```
 
-Note: The current legacy PHP pages (register.php, login.php, attendance.php) will continue to work without Composer. The Slim scaffold is optional and provided for migration.
+4) Import database:
 
-Admin note:
-- You can create an admin via `create_admin.php` (visit /Project-cnaindo/create_admin.php) or update the `users` table directly. Remove `create_admin.php` after use.
+Option A — phpMyAdmin
+- Create a database named project_cnaindo.
+- Import project_cnaindo.sql.
 
+Option B — CLI
+```
+mysql -u root -p -e "CREATE DATABASE project_cnaindo CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+mysql -u root -p project_cnaindo < project_cnaindo.sql
+```
 
-Deliverables added:
-- PHP files: index.php, register.php, login.php, logout.php, attendance.php, admin.php, auth.php, db.php, config.php
-- migrations.sql
-- README.md
+5) Point Apache to public/:
+
+Option A — set DocumentRoot to:
+```
+C:/xampp/htdocs/Project-cnaindo/public
+```
+
+Option B — keep current DocumentRoot and add a root .htaccess redirect.
+
+Create: C:\xampp\htdocs\Project-cnaindo\.htaccess
+```
+RewriteEngine on
+RewriteRule ^$ public/ [L]
+RewriteRule (.*) public/$1 [L]
+```
+
+6) Enable front controller rewrite inside public:
+
+Create/modify: C:\xampp\htdocs\Project-cnaindo\public\.htaccess
+```
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+```
+
+7) Start the app:
+- Start Apache and MySQL in XAMPP.
+- Visit one of:
+  - http://localhost/Project-cnaindo  (if using the root redirect)
+  - http://localhost                 (if DocumentRoot is set to public)
+
+### Default data
+- Database: project_cnaindo
+- Tables: users, attendance, settings
+- The SQL dump contains sample users and records for testing.
+
+### Common paths
+
+- Web entry point:
+  - C:\xampp\htdocs\Project-cnaindo\public\index.php
+- Shared partials:
+  - C:\xampp\htdocs\Project-cnaindo\includes\header.php
+  - C:\xampp\htdocs\Project-cnaindo\includes\footer.php
+
+### Development tips
+- Avoid serving the repository root; serve public/ only.
+- Keep Composer dependencies out of version control; run `composer install` after cloning.
+- Keep secrets out of Git by using .env and never committing it.
+
+### Git basics
+
+Create: C:\xampp\htdocs\Project-cnaindo\.gitignore
+```
+/vendor/
+/node_modules/
+/.env
+.env.*
+/logs/
+/tmp/
+.DS_Store
+Thumbs.db
+```
+
+Initial commit and push:
+```
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin <REMOTE_URL>
+git push -u origin main
+```
+
+### Scripts (optional)
+
+Add to composer.json for convenience:
+```
+"scripts": {
+  "start": "php -S localhost:8080 -t public",
+  "post-install-cmd": [],
+  "post-update-cmd": []
+}
+```
+
+Run the built-in server:
+```
+composer start
+```
+
+### Troubleshooting
+- If routes 404, ensure AllowOverride All is enabled for the project directory and that both .htaccess files are present.
+- If `vendor/autoload.php` is missing, run `composer install`.
+- If the app shows DB errors, verify .env matches the created database and credentials.
+
+### License
+Add an appropriate license if the code is to be shared publicly.
