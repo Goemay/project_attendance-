@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $pdo = get_pdo();
 
-            // Optional: prevent duplicate email
+            // use to prevent duplicate email
             $exists = $pdo->prepare("SELECT 1 FROM users WHERE email = ?");
             $exists->execute([$email]);
             if ($exists->fetchColumn()) {

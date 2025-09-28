@@ -1,6 +1,5 @@
 <?php
 // admin.php (Tailwind modern UI)
-
 require_once __DIR__ . '/auth.php';
 require_admin(); // block non-admins
 require_once __DIR__ . '/db.php';
@@ -24,7 +23,6 @@ $userName = htmlspecialchars($u['name'] ?? 'Admin', ENT_QUOTES, 'UTF-8');
 
     </div>
   </div>
-
   <!-- Layout: sidebar + content -->
   <div class="mt-6 grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
     <!-- Sidebar -->

@@ -1,6 +1,5 @@
 <?php
 // attendance.php — uses open_from and on_time_deadline from settings
-
 require_once __DIR__ . '/auth.php';
 require_login();
 require_once __DIR__ . '/db.php';

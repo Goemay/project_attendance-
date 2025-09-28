@@ -1,6 +1,4 @@
 <?php
-// includes/header.php
-// Header & top navigation. Assumes auth.php is in project root and provides current_user().
 require_once __DIR__ . '/../auth.php';
 
 $user = function_exists('current_user') ? current_user() : null;
@@ -24,6 +22,30 @@ $showAdmin = is_admin_user($user);
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Attendance System</title>
+
+  <!-- Prevent flash: apply saved or system theme before paint -->
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('theme');
+      if (t === 'dark') document.documentElement.classList.add('dark');
+      else if (t === 'light') document.documentElement.classList.remove('dark');
+      else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {}
+  })();
+</script>
+
+<!-- Configure Tailwind Play CDN to use class-based dark mode -->
+<script>
+  window.tailwind = window.tailwind || {};
+  tailwind.config = { darkMode: 'class' };
+</script>
+
+<!-- Tailwind CDN (must be AFTER the config) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">

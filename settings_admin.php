@@ -1,6 +1,4 @@
 <?php
-// settings_admin.php — edit geofence and time thresholds (admin only)
-
 require_once __DIR__ . '/auth.php';
 require_admin();
 require_once __DIR__ . '/db.php';

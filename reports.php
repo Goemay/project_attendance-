@@ -1,6 +1,4 @@
 <?php
-// reports.php — filtered, paginated report with CSV export
-
 require_once __DIR__ . '/auth.php';
 require_login();
 require_once __DIR__ . '/db.php';
@@ -81,9 +79,7 @@ include __DIR__ . '/includes/header.php';
     <div class="flex items-center gap-2">
       <a href="<?= htmlspecialchars($exportUrl) ?>"
          class="inline-flex items-center rounded-lg bg-emerald-600 px-3.5 py-2 text-white font-medium shadow-sm hover:bg-emerald-500">Export CSV</a>
-      <a href="reports.php"
-         class="inline-flex items-center rounded-lg bg-white border border-slate-200 px-3.5 py-2 text-slate-700 hover:bg-slate-50 shadow-sm">Reset</a>
-    </div>
+      </div>
   </div>
 
   <form method="get" class="mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -118,6 +114,8 @@ include __DIR__ . '/includes/header.php';
     </div>
     <div class="mt-3">
       <button class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-white font-semibold shadow-sm hover:bg-indigo-500">Apply filters</button>
+          <a href="reports.php"
+         class="inline-flex items-center rounded-lg bg-white border border-slate-200 px-3.5 py-2 text-slate-700 hover:bg-slate-50 shadow-sm">Reset</a>
     </div>
   </form>
 

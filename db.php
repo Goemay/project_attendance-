@@ -1,5 +1,5 @@
 <?php
-// Simple PDO helper
+// PDO helper
 $config = require __DIR__ . '/config.php';
 
 function get_pdo() {

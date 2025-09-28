@@ -1,6 +1,4 @@
 <?php
-// user_settings.php — compact layout so footer stays visible
-
 require_once __DIR__ . '/auth.php';
 require_login();
 require_once __DIR__ . '/db.php';

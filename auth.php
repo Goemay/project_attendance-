@@ -1,5 +1,4 @@
 <?php
-// Start session with secure defaults
 if (session_status() === PHP_SESSION_NONE) {
     $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
     session_set_cookie_params([
