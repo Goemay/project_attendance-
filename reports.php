@@ -73,6 +73,8 @@ $exportUrl = 'export_reports.php?' . http_build_query($query);
 
 include __DIR__ . '/includes/header.php';
 ?>
+<?php include __DIR__ . '/Universal_button.php'; ?>
+
 <main class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6">
   <div class="flex items-center justify-between gap-3">
     <h1 class="text-2xl font-semibold text-slate-900"><?= $isAdmin ? 'All reports' : 'My report' ?></h1>

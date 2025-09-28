@@ -137,24 +137,7 @@ include __DIR__ . '/includes/header.php';
 // Back/Dashboard/Admin bar (compact)
 $isAdmin = (($u['role'] ?? '') === 'admin');
 ?>
-<main class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-4">
-  <div class="mb-3 flex items-center gap-2">
-    <button type="button"
-            onclick="if (document.referrer) { history.back(); } else { window.location.href='<?= $isAdmin ? 'admin.php' : 'index.php' ?>'; }"
-            class="inline-flex items-center rounded-lg bg-white border border-slate-200 px-3 py-2 text-slate-700 hover:bg-slate-50 shadow-sm">
-      ← Back
-    </button>
-    <a href="index.php"
-       class="inline-flex items-center rounded-lg bg-slate-900 px-3.5 py-2 text-white font-medium shadow-sm hover:bg-slate-800">
-      Dashboard
-    </a>
-    <?php if ($isAdmin): ?>
-      <a href="admin.php"
-         class="inline-flex items-center rounded-lg bg-indigo-600 px-3.5 py-2 text-white font-medium shadow-sm hover:bg-indigo-500">
-        Admin
-      </a>
-    <?php endif; ?>
-  </div>
+<?php include __DIR__ . '/Universal_button.php'; ?>
 
   <!-- User card with live clock and state -->
   <div style="max-width:100%;margin:12px 0 10px 0;padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;" class="shadow-sm">

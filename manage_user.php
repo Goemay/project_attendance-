@@ -95,29 +95,6 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 include __DIR__ . '/includes/header.php'; // Tailwind CDN is loaded here
 ?>
-<?php
-// put right after: include __DIR__ . '/includes/header.php';
-$me = function_exists('current_user') ? current_user() : null;
-$isAdmin = (($me['role'] ?? '') === 'admin');
-?>
-<div class="mb-4 flex items-center gap-2">
-  <button type="button"
-          onclick="if (document.referrer) { history.back(); } else { window.location.href='<?= $isAdmin ? 'admin.php' : 'index.php' ?>'; }"
-          class="inline-flex items-center rounded-lg bg-white border border-slate-200 px-3 py-2 text-slate-700 hover:bg-slate-50 shadow-sm">
-    ← Back
-  </button>
-  <a href="index.php"
-     class="inline-flex items-center rounded-lg bg-slate-900 px-3.5 py-2 text-white font-medium shadow-sm hover:bg-slate-800">
-    Dashboard
-  </a>
-  <?php if ($isAdmin): ?>
-    <a href="admin.php"
-       class="inline-flex items-center rounded-lg bg-indigo-600 px-3.5 py-2 text-white font-medium shadow-sm hover:bg-indigo-500">
-      Admin
-    </a>
-  <?php endif; ?>
-</div>
-
 <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
   <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
     <div>

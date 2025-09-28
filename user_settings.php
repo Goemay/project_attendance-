@@ -51,29 +51,7 @@ include __DIR__ . '/includes/header.php';
 $me = function_exists('current_user') ? current_user() : null;
 $isAdmin = (($me['role'] ?? '') === 'admin');
 ?>
-
-<!-- Compact main: remove min-h-screen and vertical centering -->
-<main class="bg-slate-50">
-  <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-4">
-    <!-- Back/Dashboard/Admin bar (compact spacing) -->
-    <div class="mb-3 flex items-center gap-2">
-      <button type="button"
-              onclick="if (document.referrer) { history.back(); } else { window.location.href='<?= $isAdmin ? 'admin.php' : 'index.php' ?>'; }"
-              class="inline-flex items-center rounded-lg bg-white border border-slate-200 px-3 py-2 text-slate-700 hover:bg-slate-50 shadow-sm">
-        ← Back
-      </button>
-      <a href="index.php"
-         class="inline-flex items-center rounded-lg bg-slate-900 px-3.5 py-2 text-white font-medium shadow-sm hover:bg-slate-800">
-        Dashboard
-      </a>
-      <?php if ($isAdmin): ?>
-        <a href="admin.php"
-           class="inline-flex items-center rounded-lg bg-indigo-600 px-3.5 py-2 text-white font-medium shadow-sm hover:bg-indigo-500">
-          Admin
-        </a>
-      <?php endif; ?>
-    </div>
-
+<?php include __DIR__ . '/Universal_button.php'; ?>
     <!-- Messages (tight margin) -->
     <?php if ($ok): ?>
       <div class="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-emerald-900 text-sm"><?= htmlspecialchars($ok, ENT_QUOTES, 'UTF-8') ?></div>

@@ -64,23 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include __DIR__ . '/includes/header.php';
 $isAdmin = true; // already enforced
 ?>
-<main class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-4">
-  <!-- Back/Dashboard/Admin -->
-  <div class="mb-3 flex items-center gap-2">
-    <button type="button"
-            onclick="if (document.referrer) { history.back(); } else { window.location.href='admin.php'; }"
-            class="inline-flex items-center rounded-lg bg-white border border-slate-200 px-3 py-2 text-slate-700 hover:bg-slate-50 shadow-sm">
-      ← Back
-    </button>
-    <a href="index.php"
-       class="inline-flex items-center rounded-lg bg-slate-900 px-3.5 py-2 text-white font-medium shadow-sm hover:bg-slate-800">
-      Dashboard
-    </a>
-    <a href="admin.php"
-       class="inline-flex items-center rounded-lg bg-indigo-600 px-3.5 py-2 text-white font-medium shadow-sm hover:bg-indigo-500">
-      Admin
-    </a>
-  </div>
+<?php include __DIR__ . '/Universal_button.php'; ?>
 
   <h1 class="text-2xl font-semibold text-slate-900">Attendance settings</h1>
   <p class="text-slate-500 text-sm mt-1">Configure geofence and time thresholds.</p>
