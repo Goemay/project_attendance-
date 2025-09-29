@@ -136,7 +136,7 @@ include __DIR__ . '/includes/header.php';
 // Back/Dashboard/Admin bar (compact)
 $isAdmin = (($u['role'] ?? '') === 'admin');
 ?>
-<?php include __DIR__ . '/Universal_button.php'; ?>
+<?php include __DIR__ . '/includes/Universal_button.php'; ?>
 
   <!-- User card with live clock and state -->
   <div style="max-width:100%;margin:12px 0 10px 0;padding:14px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;" class="shadow-sm">

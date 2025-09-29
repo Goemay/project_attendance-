@@ -1,51 +1,44 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Sep 28, 2025 at 01:18 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Clean one‑click import for project_cnaindo
+-- Compatible with MySQL/MariaDB (phpMyAdmin / XAMPP)
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
+
+-- Create and select database
+CREATE DATABASE IF NOT EXISTS `project_cnaindo`
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `project_cnaindo`;
+
+-- Environment
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
+SET NAMES utf8mb4;
 
+-- Re-import safety
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS `attendance`;
+DROP TABLE IF EXISTS `settings`;
+DROP TABLE IF EXISTS `users`;
+SET FOREIGN_KEY_CHECKS = 1;
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: `project_cnaindo`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `attendance`
---
-
-CREATE TABLE `attendance` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `type` enum('checkin','checkout') NOT NULL,
-  `timestamp` datetime NOT NULL,
-  `lat` double DEFAULT NULL,
-  `lon` double DEFAULT NULL,
-  `accuracy` double DEFAULT NULL,
-  `note` varchar(255) DEFAULT NULL
+-- users
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(191) NOT NULL,
+  `email` varchar(191) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `role` enum('admin','user') NOT NULL DEFAULT 'user',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
+-- Seed admin from dump (fixed trailing comma)
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `created_at`) VALUES
+(1, 'admin', 'admin@gmail.com', '$2y$10$QWL5wkkmb6SnChgo1uCfquPpP5hwADZH/aSfksUG7/J1CDpNNNOSC', 'admin', '2025-09-24 09:17:35');
 
---
--- Table structure for table `settings`
---
-
+-- settings
 CREATE TABLE `settings` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `allowed_lat` decimal(10,8) DEFAULT NULL,
   `allowed_lon` decimal(11,8) DEFAULT NULL,
   `radius` int(11) DEFAULT 100,
@@ -53,86 +46,35 @@ CREATE TABLE `settings` (
   `work_start` time DEFAULT '09:00:00',
   `work_end` time DEFAULT '17:00:00',
   `open_from` time DEFAULT NULL,
-  `on_time_deadline` time DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
--- --------------------------------------------------------
-
---
--- Table structure for table `users`
---
-
-CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
-  `name` varchar(191) NOT NULL,
-  `email` varchar(191) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `role` enum('admin','user') NOT NULL DEFAULT 'user',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `on_time_deadline` time DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `users`
---
+-- Optional default row to match expected sequence
+INSERT INTO `settings` (`id`,`allowed_lat`,`allowed_lon`,`radius`,`updated_at`,`work_start`,`work_end`,`open_from`,`on_time_deadline`)
+VALUES (1,NULL,NULL,100,CURRENT_TIMESTAMP,'09:00:00','17:00:00',NULL,NULL);
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `created_at`) VALUES
-(1, 'admin', 'admin@gmail.com', '$2y$10$QWL5wkkmb6SnChgo1uCfquPpP5hwADZH/aSfksUG7/J1CDpNNNOSC', 'admin', '2025-09-24 09:17:35'),
---
--- Indexes for dumped tables
---
+-- attendance
+CREATE TABLE `attendance` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `type` enum('checkin','checkout') NOT NULL,
+  `timestamp` datetime NOT NULL,
+  `lat` double DEFAULT NULL,
+  `lon` double DEFAULT NULL,
+  `accuracy` double DEFAULT NULL,
+  `note` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`user_id`)
+    REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Indexes for table `attendance`
---
-ALTER TABLE `attendance`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
+-- Match original next IDs
+ALTER TABLE `users` AUTO_INCREMENT = 6;
+ALTER TABLE `attendance` AUTO_INCREMENT = 64;
+ALTER TABLE `settings` AUTO_INCREMENT = 2;
 
---
--- Indexes for table `settings`
---
-ALTER TABLE `settings`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `email` (`email`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `attendance`
---
-ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
-
---
--- AUTO_INCREMENT for table `settings`
---
-ALTER TABLE `settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `attendance`
---
-ALTER TABLE `attendance`
-  ADD CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+SET FOREIGN_KEY_CHECKS = 1;
+-- End of file

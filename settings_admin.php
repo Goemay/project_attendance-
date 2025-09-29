@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include __DIR__ . '/includes/header.php';
 $isAdmin = true; // already enforced
 ?>
-<?php include __DIR__ . '/Universal_button.php'; ?>
+<?php include __DIR__ . '/includes/Universal_button.php'; ?>
 
   <h1 class="text-2xl font-semibold text-slate-900">Attendance settings</h1>
   <p class="text-slate-500 text-sm mt-1">Configure geofence and time thresholds.</p>

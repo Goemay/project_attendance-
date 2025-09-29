@@ -49,7 +49,7 @@ include __DIR__ . '/includes/header.php';
 $me = function_exists('current_user') ? current_user() : null;
 $isAdmin = (($me['role'] ?? '') === 'admin');
 ?>
-<?php include __DIR__ . '/Universal_button.php'; ?>
+<?php include __DIR__ . '/includes/Universal_button.php'; ?>
     <!-- Messages (tight margin) -->
     <?php if ($ok): ?>
       <div class="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-emerald-900 text-sm"><?= htmlspecialchars($ok, ENT_QUOTES, 'UTF-8') ?></div>
