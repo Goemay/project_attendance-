@@ -1,7 +1,4 @@
 <?php
-// PDO helper
-$config = require __DIR__ . '/config.php';
-
 function get_pdo() {
     static $pdo = null;
     if ($pdo === null) {

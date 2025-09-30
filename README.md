@@ -176,4 +176,8 @@ composer start
 - If the app shows DB errors, verify .env matches the created database and credentials.
 
 ### License
-Add an appropriate license if the code is to be shared publicly.
+--
+
+### Author
+Instagram: @jimraihann
+GitHub: Goemay
