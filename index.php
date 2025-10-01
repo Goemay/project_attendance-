@@ -99,4 +99,4 @@ include __DIR__ . '/includes/header.php'; // Tailwind loaded here
     </a>
   </section>
 </main>
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php require __DIR__ . '/includes/footer.php'; ?>

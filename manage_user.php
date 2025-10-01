@@ -43,6 +43,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $hash = password_hash($pass, PASSWORD_BCRYPT);
                 $ins = $pdo->prepare('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)');
                 $ins->execute([$name, $email, $hash, $role]);
+
+                // Face image (optional) after creating the user
+                if (!empty($_FILES['face_image']['tmp_name']) && is_uploaded_file($_FILES['face_image']['tmp_name'])) {
+                    $uid = (int)$pdo->lastInsertId();
+                    $tmpPath = $_FILES['face_image']['tmp_name'];
+                    $mime = $_FILES['face_image']['type']
+                        ?? (function($p){ return function_exists('mime_content_type') ? mime_content_type($p) : 'application/octet-stream'; })($tmpPath);
+                    $bin  = file_get_contents($tmpPath);
+
+                    $q = $pdo->prepare('UPDATE users SET face_image = ?, face_image_mime = ?, face_updated_at = NOW() WHERE id = ?');
+                    $q->bindParam(1, $bin, PDO::PARAM_LOB);
+                    $q->bindValue(2, $mime);
+                    $q->bindValue(3, $uid, PDO::PARAM_INT);
+                    $q->execute();
+                }
+
                 $flash_ok = 'User created.';
             } elseif ($action === 'update') {
                 $id    = (int)($_POST['id'] ?? 0);
@@ -69,7 +85,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $upd = $pdo->prepare('UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?');
                     $upd->execute([$name, $email, $role, $id]);
                 }
-                $flash_ok = 'User updated.';
+
+                // Save face image if provided (works for both "Save" and "Upload face" buttons)
+                if (!empty($_FILES['face_image']['tmp_name']) && is_uploaded_file($_FILES['face_image']['tmp_name'])) {
+                    $tmpPath = $_FILES['face_image']['tmp_name'];
+                    $mime = $_FILES['face_image']['type']
+                        ?? (function($p){ return function_exists('mime_content_type') ? mime_content_type($p) : 'application/octet-stream'; })($tmpPath);
+                    $bin  = file_get_contents($tmpPath);
+
+                    $q = $pdo->prepare('UPDATE users SET face_image = ?, face_image_mime = ?, face_updated_at = NOW() WHERE id = ?');
+                    $q->bindParam(1, $bin, PDO::PARAM_LOB);
+                    $q->bindValue(2, $mime);
+                    $q->bindValue(3, $id, PDO::PARAM_INT);
+                    $q->execute();
+
+                    if (!empty($_POST['save_face_only'])) {
+                        $flash_ok = 'Face image uploaded.';
+                    }
+                }
+
+                if (empty($flash_ok)) {
+                    $flash_ok = 'User updated.';
+                }
             } elseif ($action === 'delete') {
                 $id = (int)($_POST['id'] ?? 0);
                 if ($id <= 0) {
@@ -102,7 +139,6 @@ include __DIR__ . '/includes/header.php'; // Tailwind CDN is loaded here
       <p class="text-slate-500 text-sm">Create, edit, or delete accounts.</p>
     </div>
     <div class="flex items-center gap-2">
-      <!-- Back button added -->
       <a href="admin.php" class="inline-flex items-center rounded-lg bg-white border border-slate-200 px-3 py-2 text-slate-700 hover:bg-slate-50 shadow-sm">
         ← Back
       </a>
@@ -181,7 +217,8 @@ include __DIR__ . '/includes/header.php'; // Tailwind CDN is loaded here
         <h3 class="text-lg font-semibold text-slate-900">New user</h3>
         <button onclick="closeCreate()" class="text-slate-500 hover:text-slate-800">✕</button>
       </div>
-      <form method="post" class="p-5 space-y-4">
+      <!-- enctype added to support image upload -->
+      <form method="post" enctype="multipart/form-data" class="p-5 space-y-4">
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
         <input type="hidden" name="action" value="create">
         <div>
@@ -208,6 +245,14 @@ include __DIR__ . '/includes/header.php'; // Tailwind CDN is loaded here
             </select>
           </div>
         </div>
+
+        <!-- Optional: allow uploading face on create -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700">Face image</label>
+          <input type="file" name="face_image" accept="image/*"
+                 class="mt-1 block w-full rounded-lg border-slate-300 focus:border-indigo-500 focus:ring-indigo-500">
+        </div>
+
         <div class="pt-2 flex items-center justify-end gap-2">
           <button type="button" onclick="closeCreate()" class="px-4 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50">Cancel</button>
           <button class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-500">Create</button>
@@ -226,7 +271,8 @@ include __DIR__ . '/includes/header.php'; // Tailwind CDN is loaded here
         <h3 class="text-lg font-semibold text-slate-900">Edit user</h3>
         <button onclick="closeEdit()" class="text-slate-500 hover:text-slate-800">✕</button>
       </div>
-      <form method="post" class="p-5 space-y-4">
+      <!-- enctype added to support image upload -->
+      <form method="post" enctype="multipart/form-data" class="p-5 space-y-4">
         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') ?>">
         <input type="hidden" name="action" value="update">
         <input type="hidden" id="edit-id" name="id">
@@ -251,6 +297,45 @@ include __DIR__ . '/includes/header.php'; // Tailwind CDN is loaded here
             </select>
           </div>
         </div>
+
+        <!-- Face upload (drag & drop) -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-slate-700">Face image</label>
+
+          <!-- Hidden file input that will be controlled by the drop area -->
+          <input id="edit-face-file" type="file" name="face_image" accept="image/*" class="sr-only">
+
+          <!-- Drop target -->
+          <div id="edit-drop"
+               class="mt-1 flex justify-center rounded-lg border-2 border-dashed border-slate-300 px-6 py-10 text-center
+                      hover:border-indigo-400 hover:bg-indigo-50/40 transition">
+            <div class="text-sm text-slate-600">
+              <p>Drag & drop a photo here, or</p>
+              <button type="button"
+                      id="edit-choose-btn"
+                      class="mt-2 inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-medium
+                             text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
+                Choose file
+              </button>
+              <p class="mt-2 text-xs text-slate-500">JPG, PNG, or WebP</p>
+            </div>
+          </div>
+
+          <!-- Preview -->
+          <img id="edit-face-preview"
+               class="mt-2 h-24 w-24 rounded-lg object-cover border border-slate-200 hidden"
+               alt="Preview">
+
+          <!-- Submit only the image without changing other fields -->
+          <div class="pt-1">
+            <button name="save_face_only" value="1"
+                    class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-white text-sm font-semibold
+                           shadow-sm hover:bg-indigo-500">
+              Upload face
+            </button>
+          </div>
+        </div>
+
         <div class="pt-2 flex items-center justify-end gap-2">
           <button type="button" onclick="closeEdit()" class="px-4 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50">Cancel</button>
           <button class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-500">Save</button>
@@ -282,6 +367,48 @@ function openEdit(btn){
   }
 }
 function closeEdit(){ modalEdit.classList.add('hidden'); }
+
+// Drag & drop + preview wiring for Edit modal
+(function(){
+  const fileInput = document.getElementById('edit-face-file');
+  const drop = document.getElementById('edit-drop');
+  const chooseBtn = document.getElementById('edit-choose-btn');
+  const preview = document.getElementById('edit-face-preview');
+
+  if (!fileInput || !drop || !chooseBtn) return;
+
+  function setFile(file){
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp)$/i.test(file.type)) return;
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.src = e.target.result;
+      preview.classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  chooseBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
+
+  drop.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    drop.classList.add('ring-2','ring-indigo-400','bg-indigo-50/50');
+  });
+  drop.addEventListener('dragleave', () => {
+    drop.classList.remove('ring-2','ring-indigo-400','bg-indigo-50/50');
+  });
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    drop.classList.remove('ring-2','ring-indigo-400','bg-indigo-50/50');
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    setFile(file);
+  });
+})();
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
