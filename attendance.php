@@ -175,6 +175,9 @@ $isAdmin = (($u['role'] ?? '') === 'admin');
     <input type="hidden" name="lat" id="latField">
     <input type="hidden" name="lon" id="lonField">
     <input type="hidden" name="accuracy" id="accField">
+    <!-- camera elements (hidden) -->
+    <video id="cam" autoplay muted playsinline style="display:none"></video>
+    <canvas id="snap" style="display:none"></canvas>
 
     <div class="flex gap-2 flex-wrap">
       <?php if ($state === 'can_check_in'): ?>
@@ -201,28 +204,95 @@ const clockEl = document.getElementById('clock');
 function tick(){ const d=new Date(); clockEl.textContent = d.toLocaleString(); }
 tick(); setInterval(tick,1000);
 
+// Geolocation with retry: fast high-accuracy, then slower fallback (MDN options)
 function getPosition(){
-  return new Promise((resolve,reject)=>{
+  const once = (opts)=>new Promise((resolve,reject)=>{
     if(!navigator.geolocation) return reject(new Error('Geolocation not supported'));
     navigator.geolocation.getCurrentPosition(
       pos=>resolve(pos.coords),
       err=>reject(err),
-      { enableHighAccuracy:true, timeout:10000, maximumAge:0 }
+      opts
     );
   });
+  return (async ()=>{
+    try {
+      return await once({ enableHighAccuracy:true, timeout:8000, maximumAge:0 });
+    } catch(e1) {
+      console.warn('Geo fast failed', e1.code, e1.message);
+      return await once({ enableHighAccuracy:false, timeout:20000, maximumAge:0 });
+    }
+  })();
 }
+
+// Camera snapshot: must be called in a click (user gesture)
+async function captureStill() {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+  const v = document.getElementById('cam');
+  v.muted = true;
+  v.srcObject = stream;
+  await new Promise(res=>{
+    if (v.readyState >= 1) res(); else v.onloadedmetadata = res;
+  });
+  try { await v.play(); } catch(e) {}
+  const c = document.getElementById('snap');
+  c.width = v.videoWidth || 640;
+  c.height = v.videoHeight || 480;
+  c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+  stream.getTracks().forEach(t=>t.stop());
+  return c.toDataURL('image/png').split(',')[1];
+}
+
+// Gate submit: require location, then face verify for check-in
 async function doSubmit(action){
   document.getElementById('actionField').value = action;
-  try{
-    const c = await getPosition();
-    document.getElementById('latField').value = c.latitude;
-    document.getElementById('lonField').value = c.longitude;
-    document.getElementById('accField').value = c.accuracy ?? '';
-  }catch(e){
-    alert('Could not read location; submitting without coordinates.');
+
+  // 1) Location (block if missing)
+  let coords;
+  try {
+    coords = await getPosition();
+    document.getElementById('latField').value = coords.latitude;
+    document.getElementById('lonField').value = coords.longitude;
+    document.getElementById('accField').value = coords.accuracy ?? '';
+  } catch(e) {
+    alert('Could not read location; check site/OS permissions and use localhost/HTTPS.');
+    return;
   }
+
+  // 2) Only for check-in: capture and verify face
+  if (action === 'checkin') {
+    let b64;
+    try {
+      b64 = await captureStill(); // triggers camera prompt from the button click
+    } catch(e) {
+      alert('Camera denied or unavailable; cannot check in.');
+      return;
+    }
+    try {
+      const r = await fetch('/api/face-verify', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          user_id: <?= (int)$userId ?>,
+          lat: document.getElementById('latField').value || null,
+          lon: document.getElementById('lonField').value || null,
+          image_base64: b64
+        })
+      });
+      const j = await r.json();
+      if (!j.ok || !j.match) {
+        alert('Face verification failed; sign-in blocked.');
+        return;
+      }
+    } catch(e) {
+      alert('Verification service error; try again.');
+      return;
+    }
+  }
+
+  // 3) Submit to PHP (DB insert + geofence already handled server-side)
   document.getElementById('attForm').submit();
 }
+
 document.getElementById('btnCheckIn')?.addEventListener('click', ()=>doSubmit('checkin'));
 document.getElementById('btnCheckOut')?.addEventListener('click',()=>doSubmit('checkout'));
 </script>
